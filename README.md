@@ -9,7 +9,7 @@ All copyright and intellectual property rights reside with and are retained by t
 **Oxford OXCav Research Group**  
 This derivative work is provided under the BSD-3-Clause license as specified in the LICENSE file.
 
-### Version Rationale
+## Version Rationale
 | Version | Status           | Maintenance Focus |
 |---------|------------------|-------------------|
 | v2.1    | Unstable Build   | Compatibility Issues  |
