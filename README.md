@@ -1,3 +1,28 @@
+# Repository Notice
+
+## Source Attribution
+This repository is a maintained fork of the original Fossil project:
+https://github.com/oxford-oxcav/fossil
+
+## Intellectual Property
+All copyright and intellectual property rights reside with and are retained by the original authors:
+**Oxford OXCav Research Group**
+This derivative work is provided under the BSD-3-Clause license as specified in the LICENSE file.
+
+### Version Rationale
+| Version | Status           | Maintenance Focus |
+|---------|------------------|-------------------|
+| v2.1    | Unstable Build   | Compatibility Issues  |
+| v2.0    | Stable Release   | Core Functionality    |
+
+Our development branch currently prioritizes:  
+✅ Verified stability of **v2.0** codebase  
+✅ Reproducibility of experimental results  
+❌ v2.1 features (temporarily suspended due to dependency conflicts)
+
+
+
+
 # FOSSIL
 
 FOSSIL is a software tool for the sound and automated synthesis of Lyapunov functions and Barrier certificates, for the purposes of verifying the stability or safety of continuous-time dynamical systems modelled as differential equations. The tool leverages a CEGIS-based architecture; the verision 1.0 tool is described in detail by a corresponding [tool paper](https://doi.org/10.1145/3447928.3456646) (also [below](#citation)).
