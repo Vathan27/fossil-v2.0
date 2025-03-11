@@ -6,7 +6,7 @@ https://github.com/oxford-oxcav/fossil
 
 ## Intellectual Property
 All copyright and intellectual property rights reside with and are retained by the original authors:
-**Oxford OXCav Research Group**
+**Oxford OXCav Research Group**  
 This derivative work is provided under the BSD-3-Clause license as specified in the LICENSE file.
 
 ### Version Rationale
@@ -21,6 +21,8 @@ Our development branch currently prioritizes:
 ❌ v2.1 features (temporarily suspended due to dependency conflicts)
 
 
+--------------------
+--------------------
 
 
 # FOSSIL
