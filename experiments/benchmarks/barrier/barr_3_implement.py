@@ -33,6 +33,25 @@ from experiments.benchmarks import models
 from fossil.consts import *
 
 
+class UnsafeDomain(domains.Set):
+    """"
+    The UnsafeDomain of barr3.
+
+    Features to be implemented include:
+        - generate_domain
+        - generate_data
+    """
+    
+    dimension = 2
+
+    def generate_domain(self, v):
+        pass
+
+    def generate_data(self, batch_size):
+        pass
+
+
+
 class Barr3(fossil.control.DynamicalModel):
     """
     Ref: 
@@ -83,7 +102,7 @@ def test_lnn(args):
     # system = Barr3    #  system is a class, not an instance, so it should not be system = Barr3()
     system = models.Barr3
     activations = [ActivationType.SIGMOID]  # Question3: a) how many hidden layers? b) which activation function?
-    hidden_neurons = [5] * len(activations) # Question4: how many neurons in each hidden layer?
+    hidden_neurons = [10] * len(activations) # Question4: how many neurons in each hidden layer?
 
     opts = CegisConfig(
         N_VARS=2,
@@ -95,9 +114,9 @@ def test_lnn(args):
         VERIFIER=VerifierType.DREAL,    # Question5: which verifier?
         ACTIVATION=activations,
         N_HIDDEN_NEURONS=hidden_neurons,
-        SYMMETRIC_BELT=False,
+        SYMMETRIC_BELT=False,   # Question7: mean?
         VERBOSE=1,            # log verbosity level
-        CEGIS_MAX_ITERS=1000,   # Question6: how many iterations?
+        CEGIS_MAX_ITERS=75,   # Question6: how many iterations?
     )    
 
     main.run_benchmark(
