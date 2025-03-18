@@ -4,6 +4,11 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+"""
+Barrier Certificate for Darboux Model.
+
+"""
+
 import timeit
 
 from fossil import domains
@@ -36,7 +41,7 @@ def test_lnn(args):
     XU = UnsafeDomain()
 
     sets = {
-        certificate.XD: XD,
+        certificate.XD: XD, # 类似于赋值作用
         certificate.XI: XI,
         certificate.XU: XU,
     }
