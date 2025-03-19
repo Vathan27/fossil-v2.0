@@ -1,5 +1,8 @@
 build/
 Fossil.egg-info/
-fossil/__pycache__/
-experiments/__pycache__/
-experiments/benchmarks/__pycache__/
+**/__pycache__/
+.idea
+*.pyc
+*.json
+.ipynb_checkpoints
+plots
