@@ -1,2 +1,5 @@
 build/
 Fossil.egg-info/
+fossil/__pycache__/
+experiments/__pycache__/
+experiments/benchmarks/__pycache__/
