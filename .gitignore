@@ -1,6 +1,2 @@
-.idea
-*.pyc
-*.json
-.ipynb_checkpoints
-plots
-
+build/
+Fossil.egg-info/
