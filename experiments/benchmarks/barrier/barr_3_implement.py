@@ -23,13 +23,14 @@ Last Modified: 2025-03-17  # Update with actual date
 Version: 0.0
 
 """
-import timeit
+import warnings
 import fossil
 from torch._tensor import Tensor
 from fossil import domains
 from fossil import certificate
 from fossil import main
 from experiments.benchmarks import models
+import fossil.plotting as plotting
 from fossil.consts import *
 
 
@@ -101,7 +102,7 @@ def test_lnn(args):
 
     # system = Barr3    #  system is a class, not an instance, so it should not be system = Barr3()
     system = models.Barr3
-    activations = [ActivationType.SIGMOID]  # Question3: a) how many hidden layers? b) which activation function?
+    activations = [ActivationType.SIGMOID, ActivationType.SIGMOID]  # Question3: a) how many hidden layers? b) which activation function?
     hidden_neurons = [10] * len(activations) # Question4: how many neurons in each hidden layer?
 
     opts = CegisConfig(
@@ -114,9 +115,10 @@ def test_lnn(args):
         VERIFIER=VerifierType.DREAL,    # Question5: which verifier?
         ACTIVATION=activations,
         N_HIDDEN_NEURONS=hidden_neurons,
-        SYMMETRIC_BELT=False,   # Question7: mean?
+        SYMMETRIC_BELT=True,   # Question7: meaning?
         VERBOSE=1,            # log verbosity level
         CEGIS_MAX_ITERS=75,   # Question6: how many iterations?
+        SEED=123,
     )    
 
     main.run_benchmark(
@@ -126,6 +128,16 @@ def test_lnn(args):
         concurrent=args.concurrent,
         repeat=args.repeat,
     )
+
+    # result = main.synthesise(opts)
+
+    # if args.plot:
+    #     if opts.N_VARS != 2:
+    #         warnings.warn("Plotting is only supported for 2-dimensional problems")
+    #     else:
+    #         axes = plotting.benchmark(result.f, result.cert, domains=opts.DOMAINS)
+    #         for ax, type in axes:
+    #             plotting.save_plot_with_tags(ax, opts, type)
 
 
 if __name__ == "__main__":

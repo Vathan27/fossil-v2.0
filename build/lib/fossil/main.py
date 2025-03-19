@@ -79,8 +79,7 @@ def run_benchmark(
             result = c.solve()
         stop = timeit.default_timer()
         T = stop - start
-        # print("Elapsed Time: {}".format(T))
-        print("\033[94mElapsed Time: {}\033[0m".format(T))
+        print("Elapsed Time: {}".format(T))
 
         if plot:
             if cegis_options.N_VARS != 2:
@@ -89,8 +88,8 @@ def run_benchmark(
                 axes = plotting.benchmark(
                     result.f, result.cert, domains=cegis_options.DOMAINS, **kwargs
                 )
-                for ax, name in axes:
-                    plotting.save_plot_with_tags(ax, cegis_options, name)
+                # for ax, name in axes:
+                #     plotting.save_plot_with_tags(ax, cegis_options, name)
 
         if record:
             rec = analysis.Recorder()

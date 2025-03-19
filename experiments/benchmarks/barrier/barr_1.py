@@ -65,8 +65,9 @@ def test_lnn(args):
         ACTIVATION=activations,
         N_HIDDEN_NEURONS=hidden_neurons,
         SYMMETRIC_BELT=True,
-        VERBOSE=2,
+        VERBOSE=1,
         CEGIS_MAX_ITERS=25,
+        SEED=20,
     )
     main.run_benchmark(
         opts,
