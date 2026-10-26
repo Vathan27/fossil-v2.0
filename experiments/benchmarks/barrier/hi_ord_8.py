@@ -48,10 +48,12 @@ def test_lnn(args):
         N_VARS=n_vars,
         CERTIFICATE=CertificateType.BARRIER,
         TIME_DOMAIN=TimeDomain.CONTINUOUS,
-        VERIFIER=VerifierType.Z3,
+        # VERIFIER=VerifierType.Z3,
+        VERIFIER=VerifierType.DREAL,
         ACTIVATION=activations,
         N_HIDDEN_NEURONS=n_hidden_neurons,
-        CEGIS_MAX_ITERS=25,
+        VERBOSE = 1,
+        CEGIS_MAX_ITERS=100,
         SYMMETRIC_BELT=True,
     )
 

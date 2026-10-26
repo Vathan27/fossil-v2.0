@@ -24,7 +24,7 @@ def test_lnn(args):
     open_loop = models.Quadrotor2d
 
     XD = domains.Rectangle(
-        lb=[-2.0, -2.0, np.pi, -2.0, -2.0, -2.0 * np.pi],
+        lb=[-2.0, -2.0, -np.pi, -2.0, -2.0, -2.0 * np.pi],
         ub=[2.0, 2.0, np.pi, 2.0, 2.0, 2.0 * np.pi],
     )
 

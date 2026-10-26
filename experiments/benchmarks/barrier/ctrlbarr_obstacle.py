@@ -64,7 +64,7 @@ def test_lnn(args):
         CTRLAYER=[5, n_ctrl_inputs],
         CTRLACTIVATION=[ActivationType.TANH],
         SYMMETRIC_BELT=True,
-        CEGIS_MAX_ITERS=25,
+        CEGIS_MAX_ITERS=2500,
     )
     main.run_benchmark(
         opts,
