@@ -62,7 +62,10 @@ def activation(select: consts.ActivationType, p):
         return even_poly10(p)
     elif select == consts.ActivationType.RATIONAL:
         return rational(p)
-
+    elif select == consts.ActivationType.SILU:
+        return silu(p)
+    elif select == consts.ActivationType.ELU:
+        return elu(p)
 
 def activation_der(select: consts.ActivationType, p):
     """
@@ -114,6 +117,10 @@ def activation_der(select: consts.ActivationType, p):
         return even_poly10_der(p)
     elif select == consts.ActivationType.RATIONAL:
         return rational_der(p)
+    elif select == consts.ActivationType.SILU:
+        return silu_der(p)
+    elif select == consts.ActivationType.ELU:
+        return elu_der(p)
 
 
 ##################################################################
@@ -346,6 +353,16 @@ def cosh(x):
 def rational(x):
     # tanh approximation
     return x / (1 + torch.sqrt(torch.pow(x, 2)))
+
+
+def silu(x):
+    # silu is f(x) = x * sigmoid(x) = x / (1 + e^-x)
+    return torch.nn.functional.silu(x)
+
+def elu(x):
+    # elu is f(x) = x if x > 0 else \alpha * (e^x - 1)
+    alpha = 1
+    return torch.nn.functional.elu(x, alpha)
 
 
 ##################################################################
@@ -582,3 +599,19 @@ def even_poly10_der(x):
 
 def rational_der(x):
     return 1 / (1 + torch.pow(x, 2))
+
+
+def silu_der(x):
+    # silu is f(x) = x * sigmoid(x), where sigmoid(x) = x / (1 + e^-x)
+    # derivative of silu is: 
+    #   f'(x) = sigmoid(x) + x * sigmoid(x) * (1 - sigmoid(x))
+    #         = sigmoid(x) * (1 + x * (1 - sigmoid(x)))
+    y = torch.sigmoid(x)
+    return y * (1 + x * (torch.ones(x.shape) - y))
+
+def elu_der(x):
+    # elu is f(x) = x if x > 0 else \alpha * (e^x - 1)
+    # derivative of elu is:
+    #   f'(x) = 1 if x > 0 else \alpha * e^x
+    alpha = 1
+    return torch.where(x > 0, torch.ones(x.shape), alpha * torch.exp(x))

@@ -141,7 +141,8 @@ class Verifier(Component):
         ces = {label: [] for label in results.keys()}  # [[] for res in results.keys()]
 
         if all(self.is_unsat(res) for res in results.values()):
-            ver_log.info("No counterexamples found!")
+            # ver_log.info("No counterexamples found!")
+            ver_log.info("\033[94mNo counterexamples found!\033[0m")
             found = True
         else:
             for index, o in enumerate(results.items()):
@@ -220,7 +221,7 @@ class Verifier(Component):
         :return: tensor containing single ctx
         """
         model = self._solver_model(solver, res)
-        ver_log.info("Counterexample Found: {}".format(model))
+        ver_log.info("\033[94mCounterexample Found: {}\033[0m".format(model))
         temp = []
         for i, x in enumerate(self.xs):
             n = self._model_result(solver, model, x, i)

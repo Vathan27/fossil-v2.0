@@ -383,6 +383,17 @@ class ObstacleAvoidance(control.DynamicalModel):
             -sin(phi) + 3 * (x * sin(phi) + y * cos(phi)) / (0.5 + x**2 + y**2),
         ]
 
+class HighOrd2(control.DynamicalModel):
+    n_vars = 2
+
+    def f_torch(self, v):
+        x0, x1 = v[:, 0], v[:, 1]
+        return [x1, -2400 * x1 - 576 * x0]
+
+    def f_smt(self, v):
+        x0, x1 = v
+        return [x1, - 2400 * x1 - 576 * x0]
+
 
 class HighOrd4(control.DynamicalModel):
     n_vars = 4

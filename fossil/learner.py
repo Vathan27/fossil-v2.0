@@ -351,7 +351,7 @@ class LearnerCT(LearnerNN):
         V, gradV = self.compute_V_gradV(nn, grad_nn, S)
         Vdot = self.compute_dV(gradV, Sdot)
 
-        return V, Vdot, circle
+        return V, Vdot, circle, gradV
 
     def compute_dV(self, gradV: torch.Tensor, Sdot: torch.Tensor) -> torch.Tensor:
         """Computes the  lie derivative of the function.

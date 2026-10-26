@@ -6,3 +6,4 @@ Fossil.egg-info/
 *.json
 .ipynb_checkpoints
 plots
+results/

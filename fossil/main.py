@@ -24,7 +24,7 @@ from fossil.cegis_supervisor import CegisSupervisorQ
 
 
 N_PROCS = 4
-BASE_SEED = 167
+BASE_SEED = 170
 
 
 def parse_benchmark_args():
@@ -80,7 +80,7 @@ def run_benchmark(
         stop = timeit.default_timer()
         T = stop - start
         # print("Elapsed Time: {}".format(T))
-        print("\033[94mElapsed Time: {}\033[0m".format(T))
+        print("\033[92mElapsed Time: {}\033[0m".format(T))
 
         if plot:
             if cegis_options.N_VARS != 2:

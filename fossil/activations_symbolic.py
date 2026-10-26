@@ -63,6 +63,10 @@ def activation_sym(select, p):
         return even_poly10_sym(p)
     elif select == consts.ActivationType.RATIONAL:
         return rational_sym(p)
+    elif select == consts.ActivationType.SILU:
+        return silu_dr(p)
+    elif select == consts.ActivationType.ELU:
+        return elu_dr(p)
 
 
 def activation_der_sym(select, p):
@@ -110,6 +114,10 @@ def activation_der_sym(select, p):
         return even_poly10_der_sym(p)
     elif select == consts.ActivationType.RATIONAL:
         return rational_der_sym(p)
+    elif select == consts.ActivationType.SILU:
+        return silu_der_dr(p)
+    elif select == consts.ActivationType.ELU:
+        return elu_der_dr(p)
 
 
 def relu(x):
@@ -357,6 +365,26 @@ def even_poly10_sym(x):
 
 def rational_sym(x):
     return x / (1 + (x**2) ** 0.5)
+
+
+def silu_dr(x):
+    # silu is f(x) = x * sigmoid(x) = x / (1 + e^-x)
+    y = x.copy()
+    for idx in range(len(y)):
+        y[idx, 0] = y[idx, 0] / (1 + dr.exp(-y[idx, 0]))
+    return y
+
+def elu_dr(x):
+    # won't work with sympy and z3
+    # elu is f(x) = x if x > 0 else \alpha * (e^x - 1)
+    y = x.copy()
+    alpha = 1.0
+    _If = dr.if_then_else
+    _exp = dr.exp
+    for idx in range(len(y)):
+        y[idx, 0] = _If(y[idx, 0] > 0.0, y[idx, 0], alpha * (_exp(y[idx, 0]) - 1))
+    return y
+
 
 
 ##############################
@@ -615,3 +643,18 @@ def softplus_der_dr(x):
 
 def rational_der_sym(x):
     return 1 / (1 + x**2)
+
+
+def silu_der_dr(x):
+    y = x.copy()
+    for idx in range(len(y)):
+        y[idx, 0] = (1 + (1 + y[idx, 0]) * dr.exp(-y[idx, 0])) / dr.pow((1 + dr.exp(-y[idx, 0])), 2)
+    return y
+
+def elu_der_dr(x):
+    y = x.copy()
+    alpha = 1.0
+    _If = dr.if_then_else
+    for idx in range(len(y)):
+        y[idx, 0] = _If(y[idx, 0] > 0, 1.0, alpha * dr.exp(y[idx, 0]))
+    return y

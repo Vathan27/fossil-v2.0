@@ -15,6 +15,7 @@ import pandas as pd
 
 from fossil.consts import CegisConfig, CertificateType, ACTIVATION_NAMES, PROPERTIES
 from fossil import certificate
+from experiments.benchmarks.barrier.barr_4_implement import Barr4 
 
 """Post processing of results module."""
 
@@ -334,6 +335,11 @@ def benchmark_to_latex(config: CegisConfig):
     Returns:
         str: latex string
     """
+    if config.SYSTEM.__name__ == "Barr4":
+        print("\033[31mThe system is Barr4: Hybrid Model.\033[0m")
+        s = " "
+        return s
+
     s = ""
     model = config.SYSTEM
     try:
@@ -398,6 +404,12 @@ def domains_to_string(config: CegisConfig):
     Returns:
         str: string representation of domains
     """
+
+    if config.SYSTEM.__name__ == "Barr4":
+        print("\033[31mThe system is Barr4: Hybrid Model.\033[0m")
+        s = " "
+        return s
+
     s = ""
     model = config.SYSTEM
     try:

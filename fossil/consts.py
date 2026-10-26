@@ -41,6 +41,8 @@ class ActivationType(Enum):
     SIGMOID = auto()
     SOFTPLUS = auto()
     COSH = auto()
+    SILU = auto()
+    ELU = auto()
 
 
 class LearnerType(Enum):
@@ -194,6 +196,7 @@ class CegisConfig:
     )  # For DoubleCegis
     SEED: int = None
     CUSTOM_CERTIFICATE: Any = None
+    NORM_LOSS: bool = False
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -252,6 +255,8 @@ ACTIVATION_NAMES = {
     ActivationType.SIGMOID: "$\\sigma_{\\mathrm{sig}}$",
     ActivationType.SOFTPLUS: "$\\sigma_{\\mathrm{soft}}$",
     ActivationType.COSH: "$cosh$",
+    ActivationType.SILU: "$SiLU$",
+    ActivationType.ELU: "$ELU$",
 }
 
 PROPERTIES = {

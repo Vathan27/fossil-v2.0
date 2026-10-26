@@ -202,7 +202,7 @@ class SingleCegis:
             elif (
                 self.config.CEGIS_MAX_ITERS == iters and not state[CegisStateKeys.found]
             ):
-                cegis_log.warning("Out of iterations")
+                cegis_log.warning("\033[91mOut of iterations\033[0m")
                 stop = True
 
             elif not (
@@ -212,7 +212,8 @@ class SingleCegis:
                 state = self.process_cex(S, state)
 
             iters += 1
-            cegis_log.info("Iteration: {}".format(iters))
+            # cegis_log.info("Iteration: {}".format(iters))
+            cegis_log.info("\033[93mIteration: {}\033[0m".format(iters))
 
         state = self.process_timers(state)
 
