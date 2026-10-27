@@ -160,7 +160,7 @@ if __name__ == "__main__":
     activations = [[ActivationType.TANH]]
     symmetric_belt = True
     verifiers = [VerifierType.DREAL]
-    basic_seed = 10
+    basic_seed = 0
     repeat = 1
 
     for verifier in verifiers:

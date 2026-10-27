@@ -512,7 +512,9 @@ class Barrier(Certificate):
         self.bias = True
         self.relu = torch.relu
         self.beta = None
-        self.NORM_LOSS = config.NORM_LOSS
+        self.NORM_LOSS = config.NORM_LOSS   # self.NORM_LOSS = getattr(config, "NORM_LOSS", False)
+        self.norm_eps = 1e-8
+        self.belt_width = 0.001
 
     def compute_loss(
         self,
@@ -520,8 +522,8 @@ class Barrier(Certificate):
         B_u: torch.Tensor,
         B_d: torch.Tensor,
         Bdot_d: torch.Tensor,
-        gradB_d: torch.Tensor,
-        f_d: torch.Tensor
+        gradB_d: torch.Tensor = None,
+        f_d: torch.Tensor = None
     ) -> tuple[torch.Tensor, dict]:
         """Computes loss function for Barrier certificate.
 
@@ -554,15 +556,14 @@ class Barrier(Certificate):
         loss = init_loss + unsafe_loss
 
         # set two belts
-        percent_belt = 0
+        percent_belt = 0.0
         if self.SYMMETRIC_BELT:
             # belt_index = torch.nonzero(torch.abs(B_d) <= 0.5)
-            # belt_index = torch.nonzero(torch.abs(B_d) <= 0.01)
-            belt_index = torch.nonzero(torch.abs(B_d) <= 0.001)
+            belt_index = torch.nonzero(torch.abs(B_d) <= self.belt_width)
         else:
             belt_index = torch.nonzero(B_d >= -margin)
 
-        lie_loss = torch.tensor(0.0)
+        lie_loss = Bdot_d.new_zeros(())
         if belt_index.nelement() != 0:
             dB_belt = torch.index_select(Bdot_d, dim=0, index=belt_index[:, 0])
             learn_accuracy = (
@@ -572,11 +573,13 @@ class Barrier(Certificate):
                 100 * ((dB_belt <= -margin).count_nonzero()).item() / dB_belt.shape[0]
             )
             
-            gradB_belt = torch.index_select(gradB_d, dim=0, index=belt_index[:, 0])
-            f_belt = torch.index_select(f_d, dim=0, index=belt_index[:, 0]) 
-            norm_Bdot_d = F.cosine_similarity(gradB_belt, f_belt, dim=1, eps=1e-8) 
-            lie_loss = (relu(norm_Bdot_d + 0 * margin)).mean()           
-            # lie_loss = (relu(dB_belt + 0 * margin)).mean()
+            if self.NORM_LOSS:
+                gradB_belt = torch.index_select(gradB_d, dim=0, index=belt_index[:, 0])
+                f_belt = torch.index_select(f_d, dim=0, index=belt_index[:, 0]) 
+                norm_Bdot_d = F.cosine_similarity(gradB_belt, f_belt, dim=1, eps=1e-8) 
+                lie_loss = (relu(norm_Bdot_d + 0 * margin)).mean()     
+            else:
+                lie_loss = (relu(dB_belt + 0 * margin)).mean()
             loss = loss + lie_loss
 
         accuracy = {
@@ -633,34 +636,62 @@ class Barrier(Certificate):
             if f_torch:
                 samples_dot = f_torch(samples)
 
-            # This seems slightly faster
-            B, Bdot, _, gradB = learner.get_all(samples, samples_dot)
-            (
-                B_d,
-                Bdot_d,
-            ) = (
-                B[:i1],
-                Bdot[:i1],
-            )
-            # B_i = B[i1 : i1 + i2]
-            # B_u = B[i1 + i2 :]
+            if self.NORM_LOSS:
+                nn, grad_nn = learner.compute_net_gradnet(samples)
+                B, gradB = learner.compute_V_gradV(nn, grad_nn, samples)
+                Bdot = learner.compute_dV(gradB, samples_dot)
+                gradB_norm = torch.clamp(torch.linalg.vector_norm(gradB, dim=1), min=1e-8)
+                B_norm = B / gradB_norm
+                Bdot_d = Bdot[ : i1]
+                B_norm_d, B_norm_i, B_norm_u = B_norm[ : i1], B_norm[i1 : i1 + i2], B_norm[i1 + i2 :]
+                gradB_d, f_d = gradB[ : i1], samples_dot[ : i1]
+                loss, accuracy = self.compute_loss(
+                    B_norm_i, B_norm_u, B_norm_d, 
+                    Bdot_d, gradB_d, f_d
+                )
             
-            # (loss, accuracy) = self.compute_loss(B_i, B_u, B_d, Bdot_d)
+            else:
+                # This seems slightly faster
+                B, Bdot, _ = learner.get_all(samples, samples_dot)
+                (
+                    B_d,
+                    Bdot_d,
+                ) = (
+                    B[:i1],
+                    Bdot[:i1],
+                )
+                B_i = B[i1 : i1 + i2]
+                B_u = B[i1 + i2 :]
+
+                (loss, accuracy) = self.compute_loss(B_i, B_u, B_d, Bdot_d)
+                
+            # B, Bdot, _, gradB = learner.get_all(samples, samples_dot)
+            # (
+            #     B_d,
+            #     Bdot_d,
+            # ) = (
+            #     B[:i1],
+            #     Bdot[:i1],
+            # )
+            # # B_i = B[i1 : i1 + i2]
+            # # B_u = B[i1 + i2 :]
             
-            B_i, gradB_i = B[i1 : i1 + i2], gradB[i1 : i1 + i2]
-            B_u, gradB_u = B[i1 + i2 :], gradB[i1 + i2 :]
-            gradB_d = gradB[:i1]
-            f_d = samples_dot[:i1]
+            # # (loss, accuracy) = self.compute_loss(B_i, B_u, B_d, Bdot_d)
             
-            # normed init & unsafe
-            gradB_i_norm = torch.clamp(torch.linalg.vector_norm(gradB_i, dim=1), min=1e-8)
-            gradB_u_norm = torch.clamp(torch.linalg.vector_norm(gradB_u, dim=1), min=1e-8)
-            gradB_d_norm = torch.clamp(torch.linalg.vector_norm(gradB_d, dim=1), min=1e-8)
-            norm_B_i = B_i / gradB_i_norm
-            norm_B_u = B_u / gradB_u_norm
-            norm_B_d = B_d / gradB_d_norm
+            # B_i, gradB_i = B[i1 : i1 + i2], gradB[i1 : i1 + i2]
+            # B_u, gradB_u = B[i1 + i2 :], gradB[i1 + i2 :]
+            # gradB_d = gradB[:i1]
+            # f_d = samples_dot[:i1]
+            
+            # # normed init & unsafe
+            # gradB_i_norm = torch.clamp(torch.linalg.vector_norm(gradB_i, dim=1), min=1e-8)
+            # gradB_u_norm = torch.clamp(torch.linalg.vector_norm(gradB_u, dim=1), min=1e-8)
+            # gradB_d_norm = torch.clamp(torch.linalg.vector_norm(gradB_d, dim=1), min=1e-8)
+            # norm_B_i = B_i / gradB_i_norm
+            # norm_B_u = B_u / gradB_u_norm
+            # norm_B_d = B_d / gradB_d_norm
         
-            (loss, accuracy) = self.compute_loss(norm_B_i, norm_B_u, norm_B_d, Bdot_d, gradB_d, f_d)
+            # (loss, accuracy) = self.compute_loss(norm_B_i, norm_B_u, norm_B_d, Bdot_d, gradB_d, f_d)
             
             print(f"epoch = {t}")
             print("\033[92m" + str(accuracy) + "\033[0m")
