@@ -693,8 +693,9 @@ class Barrier(Certificate):
         
             # (loss, accuracy) = self.compute_loss(norm_B_i, norm_B_u, norm_B_d, Bdot_d, gradB_d, f_d)
             
-            print(f"epoch = {t}")
-            print("\033[92m" + str(accuracy) + "\033[0m")
+            if t % 100 == 0:
+                print(f"epoch = {t}")
+                print("\033[92m" + str(accuracy) + "\033[0m")
 
             # if t % 500 == 0:
             #     print("\033[92m" + str(accuracy) + "\033[0m")

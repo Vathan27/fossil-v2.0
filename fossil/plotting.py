@@ -52,7 +52,9 @@ def benchmark(
     return (ax1, "plane"), (ax2, "surface")  # , (ax3, "Cdot")
 
 
-def save_plot_with_tags(ax, config: consts.CegisConfig, plot_type: str):
+def save_plot_with_tags(ax, config: consts.CegisConfig, 
+                        plot_type: str, plot_dir: str = "results/"
+                        ):
     prop = config.CERTIFICATE.name
     model = config.SYSTEM
     seed = torch.initial_seed()
@@ -62,7 +64,7 @@ def save_plot_with_tags(ax, config: consts.CegisConfig, plot_type: str):
         name = type(model(None).open_loop).__name__
 
     plot_name = f"model={name}_property={prop}_type={plot_type}_seed={seed}.pdf"
-    plot_name = "results/" + plot_name
+    plot_name = plot_dir + plot_name
     try:
         fig = ax.get_figure()
         fig.savefig(plot_name, bbox_inches="tight")

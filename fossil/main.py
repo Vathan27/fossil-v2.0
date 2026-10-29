@@ -30,7 +30,7 @@ BASE_SEED = 170
 def parse_benchmark_args():
     """Utility function to allow basic command line interface for running benchmarks."""
     parser = argparse.ArgumentParser(description="Choose basic benchmark options")
-    parser.add_argument("--record", action="store_true", help="Record to csv")
+    parser.add_argument("--record", action="store_true", help="Record to csv")  # --record: true, no these param, false
     parser.add_argument("--plot", action="store_true", help="Plot benchmark")
     parser.add_argument(
         "--concurrent",

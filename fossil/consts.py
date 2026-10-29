@@ -197,6 +197,10 @@ class CegisConfig:
     SEED: int = None
     CUSTOM_CERTIFICATE: Any = None
     NORM_LOSS: bool = False
+    CONSOLIDATOR_NORM_LIE: bool = False
+    PLOT_CEX: bool = False
+    PLOT_CEX_NORMED_B: bool = False
+    PLOT_CEX_DIR: str = "results/cex_plots"
 
     def __getitem__(self, item):
         return getattr(self, item)

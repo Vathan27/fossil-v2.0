@@ -53,6 +53,8 @@ class SingleCegis:
         self._assert_state()
         if self.config.VERBOSE:
             logger.Logger.set_logger_level(self.config.VERBOSE)
+        self.plot_cex_every = 5
+        self.plot_cex_eps = 0.001
 
     def _initialise_learner(self):
         learner_type = learner.get_learner(
@@ -136,7 +138,11 @@ class SingleCegis:
 
     def _initialise_consolidator(self):
         if self.config.CONSOLIDATOR == ConsolidatorType.DEFAULT:
-            return consolidator.Consolidator(self.f)
+            return consolidator.Consolidator(
+                self.f, 
+                consolidator_norm_lie=self.config.CONSOLIDATOR_NORM_LIE   ,      
+            )
+
         else:
             raise TypeError("Not Implemented Consolidator")
 
@@ -169,6 +175,8 @@ class SingleCegis:
         stop = False
 
         while not stop:
+            print("="*50 + f" iters = {iters} starts " + "="*50)
+            
             # Learner component
             cegis_log.debug("\033[1m Learner \033[0m")
             outputs = self.learner.get(**state)
@@ -191,8 +199,26 @@ class SingleCegis:
             cegis_log.debug("\033[1m Consolidator \033[0m")
             outputs = self.consolidator.get(**state)
             state = {**state, **outputs}
+            
+            # plot
+            if getattr(self.config, "PLOT_CEX", False) and \
+                (1 < iters) and (iters % self.plot_cex_every) == 0:
+                # from fossil.cex_visualizer import plot_cex_iteration
+                from fossil.cex_visualizer_1 import plot_cex_iteration
+                plot_cex_iteration(
+                    domains=self.config.DOMAINS,
+                    net=self.learner,
+                    dynamics=self.f,
+                    cex=state[CegisStateKeys.cex],
+                    trajectory=state[CegisStateKeys.trajectory],
+                    iteration=iters,
+                    epsilon=self.plot_cex_eps,
+                    normalize_barrier=self.config.PLOT_CEX_NORMED_B,
+                    output_dir=self.config.PLOT_CEX_DIR,
+                    plot_combined=True,
+                )
 
-            if state[CegisStateKeys.found]:
+            if state[CegisStateKeys.found]: # lqz notes: no cex found, found = True
                 stop = self.process_certificate(S, state, iters)
 
             elif state[CegisStateKeys.verification_timed_out]:

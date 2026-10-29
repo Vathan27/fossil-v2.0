@@ -6,6 +6,7 @@
 
 # pylint: disable=not-callable
 import torch
+import torch.nn.functional as F
 
 from fossil.consts import CegisStateKeys
 from fossil.component import Component
@@ -16,9 +17,10 @@ T = Timer()
 
 
 class Consolidator(Component):
-    def __init__(self, f):
+    def __init__(self, f, consolidator_norm_lie):
         super().__init__()
         self.f = f
+        self.consolidator_norm_lie = consolidator_norm_lie
 
     def get(self, **kw):
         for label, cex in kw[CegisStateKeys.cex].items():
@@ -79,40 +81,81 @@ class Consolidator(Component):
         grad_v = point.grad
         return grad_v, num_v
 
-    def compute_Vdot_grad(self, net, point):
-        """
-        :param net:
-        :param point:
-        :return:
-        """
-        num_v_dot = self.forward_Vdot(net, point)
-        num_v_dot.backward()
-        grad_v_dot = point.grad
-        assert grad_v_dot is not None
-        return grad_v_dot, num_v_dot
+    # def compute_Vdot_grad(self, net, point):
+    #     """
+    #     :param net:
+    #     :param point:
+    #     :return:
+    #     """
+    #     num_v_dot = self.forward_Vdot(net, point)
+    #     num_v_dot.backward()
+    #     grad_v_dot = point.grad
+    #     assert grad_v_dot is not None
+    #     return grad_v_dot, num_v_dot
 
+    # def forward_Vdot(self, net, x):
+    #     """
+    #     :param x: tensor of data points
+    #     :param xdot: tensor of data points
+    #     :return:
+    #             Vdot: tensor, evaluation of x in derivative net
+    #     """
+    #     y = x[None, :]
+    #     xdot = self.f(y)
+    #     jacobian = torch.diag_embed(torch.ones(x.shape[0], net.input_size))
+
+    #     for idx, layer in enumerate(net.layers[:-1]):
+    #         z = layer(y)
+    #         y = activation(net.acts[idx], z)
+    #         jacobian = torch.matmul(layer.weight, jacobian)
+    #         jacobian = torch.matmul(
+    #             torch.diag_embed(activation_der(net.acts[idx], z)), jacobian
+    #         )
+
+    #     jacobian = torch.matmul(net.layers[-1].weight, jacobian)
+
+    #     return torch.sum(torch.mul(jacobian[:, 0, :], xdot), dim=1)[0]
+    
+    def compute_Vdot_grad(self, net, point):
+
+        value = self.forward_Vdot(net, point)
+
+        gradient = torch.autograd.grad(
+            value,
+            point,
+        )[0]
+
+        return gradient, value.detach()
+    
     def forward_Vdot(self, net, x):
-        """
-        :param x: tensor of data points
-        :param xdot: tensor of data points
-        :return:
-                Vdot: tensor, evaluation of x in derivative net
-        """
+
         y = x[None, :]
         xdot = self.f(y)
-        jacobian = torch.diag_embed(torch.ones(x.shape[0], net.input_size))
 
-        for idx, layer in enumerate(net.layers[:-1]):
-            z = layer(y)
-            y = activation(net.acts[idx], z)
-            jacobian = torch.matmul(layer.weight, jacobian)
-            jacobian = torch.matmul(
-                torch.diag_embed(activation_der(net.acts[idx], z)), jacobian
-            )
+        # =====================================
+        # Original Lie
+        # =====================================
+        if not self.consolidator_norm_lie:
+            Bdot = net.get_all(y, xdot)[1]
+            return Bdot.sum()
 
-        jacobian = torch.matmul(net.layers[-1].weight, jacobian)
+        # =====================================
+        # Normalized Lie
+        # =====================================
+        nn, grad_nn = net.compute_net_gradnet(y)
 
-        return torch.sum(torch.mul(jacobian[:, 0, :], xdot), dim=1)[0]
+        B, gradB = net.compute_V_gradV(
+            nn, grad_nn, y
+        )
+
+        norm_lie = F.cosine_similarity(
+            gradB,
+            xdot,
+            dim=1,
+            eps=1e-8
+        )
+
+        return norm_lie.sum()    
 
     def compute_V_grad(self, net, point):
         """

@@ -37,10 +37,15 @@ import fossil.plotting as plotting
 from fossil.consts import *
 
 
-BASE_DIR = "/home/lqz27/research_ws/fossil-2.0/results/barr_dai_implements/"
+BASE_DIR = "/home/lqz27/research_ws/BarrGen/fossil/fossil-2.0/results/barr_dai_implements/"
 if not os.path.exists(BASE_DIR):
     os.makedirs(BASE_DIR)
-
+    
+# PLOT_DIR = os.path.join(BASE_DIR, "plots")
+# PLOT_DIR = os.path.join(BASE_DIR, "plots_norm_2")
+PLOT_DIR = os.path.join(BASE_DIR, "fossil")
+if not os.path.exists(PLOT_DIR):
+    os.makedirs(PLOT_DIR)
 
 class BarrDai(fossil.control.DynamicalModel):
     """
@@ -68,9 +73,19 @@ def test_lnn(args,
              verifier: VerifierType = VerifierType.DREAL,
              ):
     
+    args.record = True
+    args.plot = True
+    
+    # XD = domains.Rectangle([-7, -7], [7, 7])
+    # XI = domains.Sphere([0, -2], 1)
+    # XU = domains.Sphere([0, 1], 0.3)
+    
     XD = domains.Rectangle([-7, -7], [7, 7])
     XI = domains.Sphere([0, -2], 1)
-    XU = domains.Sphere([0, 1], 0.3)
+    XS_Outer = domains.Rectangle([-6, -6], [6, 6])
+    XU_Outer = domains.SetMinus(XD, XS_Outer)
+    XU_Inner = domains.Sphere([0, 1], 0.3)
+    XU = domains.Union(XU_Outer, XU_Inner)
 
     sets = {
         certificate.XD: XD,
@@ -101,9 +116,15 @@ def test_lnn(args,
         # VERBOSE=1,     
         VERBOSE=0,      
         CEGIS_MAX_ITERS=20000,   
+        # CEGIS_MAX_ITERS=1,   
         SEED=seed,
         LEARNING_RATE=0.01,
         NORM_LOSS=True,
+        # CONSOLIDATOR_NORM_LIE=False,
+        CONSOLIDATOR_NORM_LIE=True,
+        PLOT_CEX=False,
+        PLOT_CEX_NORMED_B=False,
+        PLOT_CEX_DIR=PLOT_DIR,
     )    
 
     start = timeit.default_timer()
@@ -120,17 +141,14 @@ def test_lnn(args,
         else:
             axes = plotting.benchmark(result.f, result.cert, domains=opts.DOMAINS)
             for ax, type in axes:
-                plotting.save_plot_with_tags(ax, opts, type)
+                plotting.save_plot_with_tags(ax, opts, type, PLOT_DIR)
     if args.record:
             rec_cfg = analysis.AnalysisConfig()
             file_name = (
-                f"barr_dai_data{n_data_init}_"
                 f"layer_{len(activations)}_"
                 f"neurons_{n_hidden_neurons}_"
-                f"sb_{int(symmetric_belt)}_"
                 f"{activations[0]}_"
-                f"{verifier}_"
-                f"lr_0.01_sb0.1"
+                f"{verifier}"
             )
             rec_cfg.results_file = BASE_DIR + file_name + ".csv"
             rec = analysis.Recorder(rec_cfg)
@@ -160,7 +178,7 @@ if __name__ == "__main__":
     activations = [[ActivationType.TANH]]
     symmetric_belt = True
     verifiers = [VerifierType.DREAL]
-    basic_seed = 0
+    basic_seed = 5
     repeat = 1
 
     for verifier in verifiers:
